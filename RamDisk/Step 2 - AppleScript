@@ -1,0 +1,23 @@
+on isSymlink(srcFolderPath, dstFolderPath)
+	try
+		set result to do shell script "ls -l " & srcFolderPath
+		if (result contains " -> ") then
+			return true
+		end if
+	end try
+	
+	# Not a symlink, then create it.
+	set promptText to srcFolderPath & " is not symlink, enter the Administrator password to recreate the symlink:"
+	display dialog promptText with title "RamDisk Setup" default answer "" with icon caution buttons {"Quit", "Continue"} default button 2 with hidden answer
+	
+	if the button returned of the result is "Continue" then
+		set pwd to text returned of the result
+		do shell script "sudo rm -r " & srcFolderPath password pwd with administrator privileges
+		do shell script "ln -s " & dstFolderPath & " " & srcFolderPath
+	end if
+	
+	return false
+end isSymlink
+
+my isSymlink("~/Library/Caches/Google/Chrome", "/Volumes/RamDisk/Library/Caches/Google/Chrome")
+#my isSymlink("/Volumes/RamDisk/TEST", "/Volumes/RamDisk/DstTEST")
