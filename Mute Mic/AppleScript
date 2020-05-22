@@ -1,0 +1,55 @@
+on getInputDevice()
+	set wasSystemPreferencesRunning to false
+	if application "System Preferences" is running then
+		set wasSystemPreferencesRunning to true
+	end if
+	
+	tell application "System Preferences"
+		reveal anchor "input" of pane id "com.apple.preference.sound"
+	end tell
+	
+	tell application "System Events"
+		tell application process "System Preferences"
+			tell tab group 1 of window "Sound"
+				tell table 1 of scroll area 1
+					set selected_row to (first UI element whose selected is true)
+					set inputDevice to value of text field 1 of selected_row as text
+				end tell
+			end tell
+		end tell
+	end tell
+	
+	if wasSystemPreferencesRunning is false then
+		tell application "System Preferences" to quit
+	end if
+	
+	return inputDevice
+end getInputDevice
+
+on getMicVolume()
+	input volume of (get volume settings)
+end getMicVolume
+
+on disableMic()
+	set volume input volume 0
+end disableMic
+
+on enableMic()
+	set volume input volume 100
+end enableMic
+
+set inputDevice to "Unable to retrieve input device!"
+try
+	set inputDevice to getInputDevice()
+on error errMsg
+end try
+
+if getMicVolume() is greater than 0 then
+	disableMic()
+	set micVolumeMuted to "Muted"
+else
+	enableMic()
+	set micVolumeMuted to "Unmuted"
+end if
+
+display notification micVolumeMuted with title "Mic Volume" subtitle inputDevice
