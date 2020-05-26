@@ -8,16 +8,22 @@ on getInputDevice()
 		reveal anchor "input" of pane id "com.apple.preference.sound"
 	end tell
 	
-	tell application "System Events"
-		tell application process "System Preferences"
-			tell tab group 1 of window "Sound"
-				tell table 1 of scroll area 1
-					set selected_row to (first UI element whose selected is true)
-					set inputDevice to value of text field 1 of selected_row as text
+	-- This part requires permission for apps when the hotkey is pressed.
+	-- System Preferences -> Security & Privacy -> Accessiblity
+	try
+		tell application "System Events"
+			tell application process "System Preferences"
+				tell tab group 1 of window "Sound"
+					tell table 1 of scroll area 1
+						set selected_row to (first UI element whose selected is true)
+						set inputDevice to value of text field 1 of selected_row as text
+					end tell
 				end tell
 			end tell
 		end tell
-	end tell
+	on error errMsg
+		set inputDevice to "Unable to retrieve input device!"
+	end try
 	
 	if wasSystemPreferencesRunning is false then
 		tell application "System Preferences" to quit
@@ -38,11 +44,7 @@ on enableMic()
 	set volume input volume 100
 end enableMic
 
-set inputDevice to "Unable to retrieve input device!"
-try
-	set inputDevice to getInputDevice()
-on error errMsg
-end try
+set inputDevice to getInputDevice()
 
 if getMicVolume() is greater than 0 then
 	disableMic()
