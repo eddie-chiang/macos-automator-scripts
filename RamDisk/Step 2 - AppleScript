@@ -1,3 +1,13 @@
+on checkPathExists(thePath)
+	if thePath starts with "~" then set thePath to POSIX path of (path to home folder) & text 3 thru -1 of (get thePath)
+	try
+		POSIX file thePath as alias
+		return true
+	on error
+		return false
+	end try
+end checkPathExists
+
 on isSymlink(srcFolderPath, dstFolderPath)
 	try
 		set result to do shell script "ls -l " & srcFolderPath
@@ -6,7 +16,10 @@ on isSymlink(srcFolderPath, dstFolderPath)
 		end if
 	end try
 	
-	# Not a symlink, then create it.
+	return false
+end isSymlink
+
+on createSymlink(srcFolderPath, dstFolderPath)
 	set promptText to srcFolderPath & " is not symlink, enter the Administrator password to recreate the symlink:"
 	display dialog promptText with title "RamDisk Setup" default answer "" with icon caution buttons {"Quit", "Continue"} default button 2 with hidden answer
 	
@@ -15,9 +28,13 @@ on isSymlink(srcFolderPath, dstFolderPath)
 		do shell script "sudo rm -r " & srcFolderPath password pwd with administrator privileges
 		do shell script "ln -s " & dstFolderPath & " " & srcFolderPath
 	end if
-	
-	return false
-end isSymlink
+end createSymlink
 
-my isSymlink("~/Library/Caches/Google/Chrome", "/Volumes/RamDisk/Library/Caches/Google/Chrome")
-#my isSymlink("/Volumes/RamDisk/TEST", "/Volumes/RamDisk/DstTEST")
+set srcFolderPath to "~/Library/Caches/Google/Chrome" # "/Volumes/RamDisk/TEST"
+set dstFolderPath to "/Volumes/RamDisk/Library/Caches/Google/Chrome" # "/Volumes/RamDisk/DstTEST"
+
+if checkPathExists(srcFolderPath) then
+	if isSymlink(srcFolderPath, dstFolderPath) = false then
+		createSymlink(srcFolderPath, dstFolderPath)
+	end if
+end if
