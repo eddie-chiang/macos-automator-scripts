@@ -4,8 +4,16 @@
 # 4. Save as an Application, e.g. RamDisk.app.
 if [ ! -d "/Volumes/RamDisk" ]; then
 	# NOTE: Using this method to create a RamDisk may have a problem with system hibernate.
-	# Creating RamDisk, with size 4GB (4 * 1024 * 1024 * 2)
-  	diskutil erasevolume HFS+ RamDisk `hdiutil attach -nomount ram://$((4*1024*1024*2))`
+	# Creating RamDisk, with a default size of 4GB (4 * 1024 * 1024 * 2).
+	ramdisk_size=$((4*1024*1024*2))
+
+	# If the memory size is greater than or equal to 32GB, then create a 16GB RamDisk.
+	if [ $(sysctl -n hw.memsize) -ge $((32*1024*1024*1024)) ]; then
+		ramdisk_size=$((16*1024*1024*2))
+	fi
+
+  	diskutil erasevolume HFS+ RamDisk `hdiutil attach -nomount ram://$ramdisk_size`
+
 	cd "/Volumes/RamDisk"
 	mkdir "Downloads"
 	mkdir -p "Temp/Screenshots"
